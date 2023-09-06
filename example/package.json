@@ -1,0 +1,16 @@
+{
+  "private": true,
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite"
+  },
+  "dependencies": {
+    "base58-js": "^2.0.0",
+    "walletconnect-standard": "workspace:^",
+    "wallet-standard-list": "0.1.0"
+  },
+  "devDependencies": {
+    "glob": "^9.3.4",
+    "vite": "^4.2.1"
+  }
+}
