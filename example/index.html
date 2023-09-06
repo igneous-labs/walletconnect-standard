@@ -7,7 +7,7 @@
         WALLET_CONNECTED_EVENT_TYPE,
         WALLET_DISCONNECTED_EVENT_TYPE,
       } from "wallet-standard-list";
-      import { registerWalletConnect } from "walletconnect-standard";
+      import { registerWalletConnect } from "walletconnect-wallet-standard";
 
       // Get WalletConnect project ID from https://cloud.walletconnect.com
       const projectId = "4374d1c29d9988dcea189594474af595";
@@ -65,10 +65,10 @@
       name="viewport"
       content="width=device-width, initial-scale=1, minimum-scale=1"
     />
-    <title>Example walletconnect-standard app</title>
+    <title>Example walletconnect-wallet-standard app</title>
   </head>
   <body>
-    <h1>Example walletconnect-standard app</h1>
+    <h1>Example walletconnect-wallet-standard app</h1>
     <h2>Connect:</h2>
     <wallet-standard-list
       required-features="solana:signAndSendTransaction, solana:signTransaction"

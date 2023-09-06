@@ -1,3 +1,3 @@
-# walletconnect-standard
+# walletconnect-wallet-standard
 
-See [package README](./walletconnect-standard/README.md) for more details
+See [package README](./walletconnect-wallet-standard/README.md) for more details

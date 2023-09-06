@@ -1,4 +1,4 @@
-# walletconnect-standard
+# walletconnect-wallet-standard
 
 Adapter for registering `WalletConnect` alongside with every default wallet-standard wallet via [wallet-standard-list](https://github.com/igneous-labs/wallet-standard-list/blob/master/wallet-standard-list) library.
 
@@ -7,7 +7,7 @@ Adapter for registering `WalletConnect` alongside with every default wallet-stan
 First, register the WalletConnect adapter:
 
 ```js
-import { registerWalletConnect } from "walletconnect-standard";
+import { registerWalletConnect } from "walletconnect-wallet-standard";
 
 // Get WalletConnect project ID from https://cloud.walletconnect.com
 const projectId = "4374d1c29d9988dcea189594474af595";

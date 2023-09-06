@@ -6,7 +6,7 @@
   },
   "dependencies": {
     "base58-js": "^2.0.0",
-    "walletconnect-standard": "workspace:^",
+    "walletconnect-wallet-standard": "workspace:^",
     "wallet-standard-list": "0.1.0"
   },
   "devDependencies": {
