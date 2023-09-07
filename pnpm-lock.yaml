@@ -50,9 +50,9 @@ importers:
       wallet-standard-list:
         specifier: 0.1.0
         version: 0.1.0
-      walletconnect-standard:
+      walletconnect-wallet-standard:
         specifier: workspace:^
-        version: link:../walletconnect-standard
+        version: link:../walletconnect-wallet-standard
     devDependencies:
       glob:
         specifier: ^9.3.4
@@ -61,8 +61,11 @@ importers:
         specifier: ^4.2.1
         version: 4.2.1
 
-  walletconnect-standard:
+  walletconnect-wallet-standard:
     dependencies:
+      '@solana/wallet-standard-chains':
+        specifier: ^1.1.0
+        version: 1.1.0
       '@walletconnect/qrcode-modal':
         specifier: ^1.8.0
         version: 1.8.0
@@ -75,10 +78,25 @@ importers:
       '@walletconnect/utils':
         specifier: ^2.10.0
         version: 2.10.0
+      base58:
+        specifier: ^2.0.1
+        version: 2.0.1
+      base58-js:
+        specifier: ^2.0.0
+        version: 2.0.0
       bs58:
         specifier: ^5.0.0
         version: 5.0.0
     devDependencies:
+      '@solana/wallet-standard-features':
+        specifier: ^1.1.0
+        version: 1.1.0
+      '@wallet-standard/base':
+        specifier: ^1.0.1
+        version: 1.0.1
+      '@wallet-standard/features':
+        specifier: ^1.0.3
+        version: 1.0.3
       typescript:
         specifier: ^5
         version: 5.0.2
@@ -353,6 +371,21 @@ packages:
       fastq: 1.15.0
     dev: true
 
+  /@solana/wallet-standard-chains@1.1.0:
+    resolution: {integrity: sha512-IRJHf94UZM8AaRRmY18d34xCJiVPJej1XVwXiTjihHnmwD0cxdQbc/CKjrawyqFyQAKJx7raE5g9mnJsAdspTg==}
+    engines: {node: '>=16'}
+    dependencies:
+      '@wallet-standard/base': 1.0.1
+    dev: false
+
+  /@solana/wallet-standard-features@1.1.0:
+    resolution: {integrity: sha512-oVyygxfYkkF5INYL0GuD8GFmNO/wd45zNesIqGCFE6X66BYxmI6HmyzQJCcZTZ0BNsezlVg4t+3MCL5AhfFoGA==}
+    engines: {node: '>=16'}
+    dependencies:
+      '@wallet-standard/base': 1.0.1
+      '@wallet-standard/features': 1.0.3
+    dev: true
+
   /@stablelib/aead@1.0.1:
     resolution: {integrity: sha512-q39ik6sxGHewqtO0nP4BuSe3db5G1fEJE8ukvngS2gLkBXyy6E7pLubhbYgnkDFv6V8cWaxcE4Xn0t6LWcJkyg==}
     dev: false
@@ -483,7 +516,13 @@ packages:
   /@wallet-standard/base@1.0.1:
     resolution: {integrity: sha512-1To3ekMfzhYxe0Yhkpri+Fedq0SYcfrOfJi3vbLjMwF2qiKPjTGLwZkf2C9ftdQmxES+hmxhBzTwF4KgcOwf8w==}
     engines: {node: '>=16'}
-    dev: false
+
+  /@wallet-standard/features@1.0.3:
+    resolution: {integrity: sha512-m8475I6W5LTatTZuUz5JJNK42wFRgkJTB0I9tkruMwfqBF2UN2eomkYNVf9RbrsROelCRzSFmugqjKZBFaubsA==}
+    engines: {node: '>=16'}
+    dependencies:
+      '@wallet-standard/base': 1.0.1
+    dev: true
 
   /@walletconnect/browser-utils@1.8.0:
     resolution: {integrity: sha512-Wcqqx+wjxIo9fv6eBUFHPsW1y/bGWWRboni5dfD8PtOmrihrEpOCmvRJe4rfl7xgJW8Ea9UqKEaq0bIRLHlK4A==}
@@ -724,7 +763,7 @@ packages:
   /@walletconnect/window-metadata@1.0.0:
     resolution: {integrity: sha512-9eFvmJxIKCC3YWOL97SgRkKhlyGXkrHwamfechmqszbypFspaSk+t2jQXAEU7YClHF6Qjw5eYOmy1//zFi9/GA==}
     dependencies:
-      '@walletconnect/window-getters': 1.0.0
+      '@walletconnect/window-getters': 1.0.1
     dev: false
 
   /@walletconnect/window-metadata@1.0.1:
@@ -867,6 +906,11 @@ packages:
   /base58-js@2.0.0:
     resolution: {integrity: sha512-nAV5d32QXuGcGptSApkKpC1gGakWBnfJMNjKrYTBh4tb0szfZF+ooueFLy8T4VrY+o4SrE/TyrtUnRZcwZchaA==}
     engines: {node: '>= 8'}
+    dev: false
+
+  /base58@2.0.1:
+    resolution: {integrity: sha512-qK6gt2fMSxN2xGOi+btI5oAnXL+vEq0AsHWHhf5jfm2hE6MwmW+2414qF96utV3Xfg3En8hEA9Q4lif4lbXcgw==}
+    engines: {node: '>= 6'}
     dev: false
 
   /base64-js@1.5.1:

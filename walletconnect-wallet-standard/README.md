@@ -1,45 +1,31 @@
 # walletconnect-wallet-standard
 
-Adapter for registering `WalletConnect` alongside with every default wallet-standard wallet via [wallet-standard-list](https://github.com/igneous-labs/wallet-standard-list/blob/master/wallet-standard-list) library.
+Register the [WalletConnect sign client](https://github.com/WalletConnect/walletconnect-monorepo/tree/v2.0/packages/sign-client) as a [wallet-standard standard wallet](https://github.com/wallet-standard/wallet-standard) with [solana features](https://github.com/solana-labs/wallet-standard/tree/master/packages/core/features) on window
 
-## Example
+## Usage
 
-First, register the WalletConnect adapter:
+Import and call the `registerWalletConnectWalletStandard` function:
 
 ```js
-import { registerWalletConnect } from "walletconnect-wallet-standard";
+import { registerWalletConnectWalletStandard } from "walletconnect-wallet-standard";
 
 // Get WalletConnect project ID from https://cloud.walletconnect.com
 const projectId = "4374d1c29d9988dcea189594474af595";
 
-// Register WalletConnect Wallet
-registerWalletConnect(projectId, "Mainnet", {
+registerWalletConnectWalletStandard(projectId, "Mainnet", {
   name: "My Dapp",
-  description: "My Dapp description", url: "https://my-dapp.com",
+  description: "My Dapp description",
+  url: "https://my-dapp.com",
   icons: ["https://my-dapp.com/logo.png"],
 });
 ```
 
-Then, add the `wallet-standard-list` element to the custom element registry:
+The WalletConnect adapter will be registered as a standard wallet:
 
 ```js
-import { defineCustomElement } from "wallet-standard-list";
-
-defineCustomElement(); // accepts an optional string arg for the custom element tag name, otherwise defaults to "wallet-standard-list"
+import { getWallets } from "@wallet-standard/app";
+const { get } = getWallets();
+const allWallets = get(); // the WalletConnect adapter should be a part of `allWallets`
 ```
-
-You can now use it in your html:
-
-```html
-<wallet-standard-list
-  required-features="solana:signAndSendTransaction, solana:signTransaction"
-></wallet-standard-list>
-```
-
-## Basic Styling Example
-
-See [wallet-standard-list README](https://github.com/igneous-labs/wallet-standard-list/blob/master/wallet-standard-list/README.md#basic-styling-example)
-
-## Usage
 
 See [wallet-standard-list README](https://github.com/igneous-labs/wallet-standard-list/blob/master/wallet-standard-list/README.md#usage)
