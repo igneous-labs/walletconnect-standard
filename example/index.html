@@ -13,15 +13,15 @@
     <h1>Example walletconnect-wallet-standard app</h1>
     <h2>Detected Standard Wallets:</h2>
     <wallet-standard-list
-      required-features="solana:signTransaction, solana:signMessage"
+      required-features="solana:signMessage"
     ></wallet-standard-list>
     <h4>Connected Wallet: <span id="connected-wallet">None</span></h4>
     <h4>First Account: <span id="first-account">None</span></h4>
     <footer>
       <button type="button" id="disconnect-button" disabled>Disconnect</button>
-      <button type="button" id="sign-stake-button" disabled>
-        Sign TX to stake 1 SOL to Laine
-      </button>
+      <!-- <button type="button" id="sign-stake-button" disabled>
+                Sign TX to stake 1 SOL to Laine
+                </button> -->
       <button type="button" id="sign-msg-button" disabled>
         Sign message "test message"
       </button>

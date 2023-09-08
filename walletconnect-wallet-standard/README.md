@@ -12,11 +12,16 @@ import { registerWalletConnectWalletStandard } from "walletconnect-wallet-standa
 // Get WalletConnect project ID from https://cloud.walletconnect.com
 const projectId = "4374d1c29d9988dcea189594474af595";
 
-registerWalletConnectWalletStandard(projectId, "Mainnet", {
-  name: "My Dapp",
-  description: "My Dapp description",
-  url: "https://my-dapp.com",
-  icons: ["https://my-dapp.com/logo.png"],
+registerWalletConnectWalletStandard({
+  options: {
+    projectId,
+    metadata: {
+      name: "My Dapp",
+      description: "My Dapp description",
+      url: "https://my-dapp.com",
+      icons: ["https://my-dapp.com/logo.png"],
+    },
+  },
 });
 ```
 

@@ -12,9 +12,6 @@ export class NoChainsSetError extends Error {
 export class ClientNotInitializedError extends Error {
     constructor();
 }
-export class QRCodeModalError extends Error {
-    constructor();
-}
 /**
  * @implements {WalletWithSolanaFeatures}
  */
@@ -22,7 +19,7 @@ export class WalletConnectWallet implements WalletWithSolanaFeatures {
     /**
      * @param {SolanaWalletConnectWalletStandardCtorArgs} args
      */
-    constructor({ chains, ...options }: SolanaWalletConnectWalletStandardCtorArgs);
+    constructor({ chains, options }: SolanaWalletConnectWalletStandardCtorArgs);
     /** @returns {"1.0.0"} */
     get version(): "1.0.0";
     /** @returns {WalletWithSolanaFeatures["icon"]} */
@@ -35,19 +32,16 @@ export class WalletConnectWallet implements WalletWithSolanaFeatures {
     get accounts(): readonly import("@wallet-standard/base").WalletAccount[];
     /** @returns {WalletWithSolanaFeatures["features"] & import("@wallet-standard/features").StandardConnectFeature & import("@wallet-standard/features").StandardDisconnectFeature & import("@wallet-standard/features").StandardEventsFeature} */
     get features(): import("@solana/wallet-standard-features").SolanaFeatures & import("@wallet-standard/features").StandardConnectFeature & import("@wallet-standard/features").StandardDisconnectFeature & import("@wallet-standard/features").StandardEventsFeature;
-    /** @returns {import("@solana/wallet-standard-features").SolanaSignAndSendTransactionFeature["solana:signAndSendTransaction"]["supportedTransactionVersions"]} */
-    get supportedTransactionVersions(): readonly import("@solana/wallet-standard-features").SolanaTransactionVersion[];
-    /** @returns {NonLocalnetChain} */
-    get defaultChain(): NonLocalnetChain;
+    /** @returns {WcSupportedSolChain} */
+    get defaultChain(): WcSupportedSolChain;
     #private;
 }
 export type WalletWithSolanaFeatures = import("@solana/wallet-standard-features").WalletWithSolanaFeatures;
-export type NonLocalnetChain = Exclude<import("@solana/wallet-standard-chains").SolanaChain, "solana:localnet">;
-export type MaybeNonLocalnetChainsProp = {
-    chains?: NonLocalnetChain[] | null | undefined;
+export type WcSupportedSolChain = Exclude<import("@solana/wallet-standard-chains").SolanaChain, "solana:localnet" | "solana:testnet">;
+export type MaybeWcSupportedSolChainsProp = {
+    chains?: WcSupportedSolChain[] | null | undefined;
 };
-export type SolanaWalletConnectWalletStandardCtorArgs = MaybeNonLocalnetChainsProp & {
-    projectId: string;
+export type SolanaWalletConnectWalletStandardCtorArgs = MaybeWcSupportedSolChainsProp & {
     options: import('@walletconnect/types').SignClientTypes.Options;
 };
 export type WalletConnectAccount = {
@@ -56,4 +50,3 @@ export type WalletConnectAccount = {
 export type MaybeChainProp = {
     chain?: import("@wallet-standard/base").IdentifierString | null | undefined;
 };
-export type Cluster = 'mainnet-beta' | 'devnet';

@@ -1,24 +1,27 @@
-import {
-  SOLANA_DEVNET_CHAIN,
-  SOLANA_MAINNET_CHAIN,
-} from "@solana/wallet-standard-chains";
+// import {
+//   SOLANA_DEVNET_CHAIN,
+//   SOLANA_MAINNET_CHAIN,
+// } from "@solana/wallet-standard-chains";
 import { WalletConnectModal } from "@walletconnect/modal";
 import WalletConnectClient from "@walletconnect/sign-client";
 import { getSdkError, parseAccountId } from "@walletconnect/utils";
-import { binary_to_base58 as binaryToBase58 } from "base58-js";
+import {
+  base58_to_binary as base58ToBinary,
+  binary_to_base58 as binaryToBase58,
+} from "base58-js";
 
 // need to redefine type because @implements doesnt allow import for some reason
 /** @typedef {import("@solana/wallet-standard-features").WalletWithSolanaFeatures} WalletWithSolanaFeatures */
 
-/** @typedef {Exclude<import("@solana/wallet-standard-chains").SolanaChain, "solana:localnet" | "solana:testnet">} NonLocalnetChain */
+/** @typedef {Exclude<import("@solana/wallet-standard-chains").SolanaChain, "solana:localnet" | "solana:testnet">} WcSupportedSolChain */
 
 // typedef here just to use [optionalProp] syntax
 /**
- * @typedef MaybeNonLocalnetChainsProp
- * @property {NonLocalnetChain[] | null | undefined} [chains]
+ * @typedef MaybeWcSupportedSolChainsProp
+ * @property {WcSupportedSolChain[] | null | undefined} [chains]
  */
 
-/** @typedef {MaybeNonLocalnetChainsProp & { projectId: string, options: import('@walletconnect/types').SignClientTypes.Options }} SolanaWalletConnectWalletStandardCtorArgs */
+/** @typedef {MaybeWcSupportedSolChainsProp & { options: import('@walletconnect/types').SignClientTypes.Options }} SolanaWalletConnectWalletStandardCtorArgs */
 
 /** @typedef {{ address: string }} WalletConnectAccount */
 
@@ -29,7 +32,7 @@ import { binary_to_base58 as binaryToBase58 } from "base58-js";
  */
 
 /**
- * @type {Record<NonLocalnetChain, string>}
+ * @type {Record<WcSupportedSolChain, string>}
  */
 const WalletConnectChainID = {
   "solana:mainnet": "solana:4sGjMW1sUnHzSxGspuhpqLDx6wiyjNtZ",
@@ -40,7 +43,7 @@ const WalletConnectChainID = {
  * @enum {string}
  */
 const WalletConnectRPCMethods = {
-  signTransaction: "solana_signTransaction",
+  // signTransaction: "solana_signTransaction",
   signMessage: "solana_signMessage",
 };
 
@@ -55,7 +58,7 @@ const getConnectParams = (chain) => ({
     solana: {
       chains: [chain],
       methods: [
-        WalletConnectRPCMethods.signTransaction,
+        // WalletConnectRPCMethods.signTransaction,
         WalletConnectRPCMethods.signMessage,
       ],
       events: [],
@@ -86,15 +89,6 @@ export class ClientNotInitializedError extends Error {
 
     // Set the prototype explicitly.
     Object.setPrototypeOf(this, ClientNotInitializedError.prototype);
-  }
-}
-
-export class QRCodeModalError extends Error {
-  constructor() {
-    super();
-
-    // Set the prototype explicitly.
-    Object.setPrototypeOf(this, QRCodeModalError.prototype);
   }
 }
 
@@ -141,11 +135,11 @@ export class WalletConnectWallet {
         version: "1.0.0",
         signMessage: this.#signMessage.bind(this),
       },
-      "solana:signTransaction": {
-        version: "1.0.0",
-        supportedTransactionVersions: this.supportedTransactionVersions,
-        signTransaction: this.#signTransaction.bind(this),
-      },
+      // "solana:signTransaction": {
+      //   version: "1.0.0",
+      //   supportedTransactionVersions: this.supportedTransactionVersions,
+      //   signTransaction: this.#signTransaction.bind(this),
+      // },
       "standard:connect": {
         version: "1.0.0",
         connect: this.#connect.bind(this),
@@ -162,12 +156,12 @@ export class WalletConnectWallet {
   }
 
   // TODO: implement querying the WalletConnect for its supported tx versions
-  /** @returns {import("@solana/wallet-standard-features").SolanaSignTransactionFeature["solana:signTransaction"]["supportedTransactionVersions"]} */
-  get supportedTransactionVersions() {
-    return ["legacy", 0];
-  }
+  // /** @returns {import("@solana/wallet-standard-features").SolanaSignTransactionFeature["solana:signTransaction"]["supportedTransactionVersions"]} */
+  // get supportedTransactionVersions() {
+  //   return ["legacy", 0];
+  // }
 
-  /** @returns {NonLocalnetChain} */
+  /** @returns {WcSupportedSolChain} */
   get defaultChain() {
     const res = this.#chains[0];
     if (!res) {
@@ -185,13 +179,13 @@ export class WalletConnectWallet {
   /** @type {import('@walletconnect/types').SignClientTypes.Options} */
   #options;
 
-  /** @type {NonLocalnetChain[]} */
+  /** @type {WcSupportedSolChain[]} */
   #chains;
 
-  /** @type {Record<NonLocalnetChain, string | null>} */
+  /** @type {Record<WcSupportedSolChain, string | null>} */
   #topics;
 
-  /** @type {Record<NonLocalnetChain, WalletConnectAccount[]>} */
+  /** @type {Record<WcSupportedSolChain, WalletConnectAccount[]>} */
   #accounts;
 
   /** @type {{ [E in import("@wallet-standard/features").StandardEventsNames]: Set<import("@wallet-standard/features").StandardEventsListeners[E]> }} */
@@ -200,7 +194,7 @@ export class WalletConnectWallet {
   /**
    * @param {SolanaWalletConnectWalletStandardCtorArgs} args
    */
-  constructor({ chains, ...options }) {
+  constructor({ chains, options }) {
     this.#chains = chains ?? ["solana:mainnet"];
     this.#options = options;
     this.#topics = {
@@ -245,56 +239,56 @@ export class WalletConnectWallet {
     for (let i = 0; i < inputs.length; i++) {
       res.push({
         signedMessage: inputs[i].message,
-        signature: base64ToUint8Ascii(signatures[i]),
+        signature: base58ToBinary(signatures[i]),
       });
     }
     return res;
   }
 
-  /** @type {import("@solana/wallet-standard-features").SolanaSignTransactionMethod} */
-  async #signTransaction(...inputs) {
-    if (!this.#client) {
-      throw new ClientNotInitializedError();
-    }
-    if (!areAllChainsSupported(inputs)) {
-      throw new ChainNotSupportedError();
-    }
-    const inputIndices = this.#inputsIndicesByChain(inputs);
-    const res = [];
-    for (const [chainUncasted, indices] of Object.entries(inputIndices)) {
-      if (indices.length === 0) {
-        continue;
-      }
-      /** @type {NonLocalnetChain} */ // @ts-ignore
-      const chain = chainUncasted;
-      const chainId = WalletConnectChainID[chain];
-      const rawTxs = indices.map((i) => inputs[i].transaction);
-      const payloads = rawTxs.map(uint8ToBase64Ascii);
-      const b64SignedPayloads = [];
-      for (const payload of payloads) {
-        // eslint-disable-next-line no-await-in-loop
-        const { signature } = await this.#client.request({
-          chainId,
-          topic: this.#topics[chainId],
-          request: {
-            method: WalletConnectRPCMethods.signTransaction,
-            params: {
-              transaction: payload,
-            },
-          },
-        });
+  // /** @type {import("@solana/wallet-standard-features").SolanaSignTransactionMethod} */
+  // async #signTransaction(...inputs) {
+  //   if (!this.#client) {
+  //     throw new ClientNotInitializedError();
+  //   }
+  //   if (!areAllChainsSupported(inputs)) {
+  //     throw new ChainNotSupportedError();
+  //   }
+  //   const inputIndices = this.#inputsIndicesByChain(inputs);
+  //   const res = [];
+  //   for (const [chainUncasted, indices] of Object.entries(inputIndices)) {
+  //     if (indices.length === 0) {
+  //       continue;
+  //     }
+  //     /** @type {WcSupportedSolChain} */ // @ts-ignore
+  //     const chain = chainUncasted;
+  //     const chainId = WalletConnectChainID[chain];
+  //     const rawTxs = indices.map((i) => inputs[i].transaction);
+  //     const payloads = rawTxs.map(uint8ToBase64Ascii);
+  //     const b64SignedPayloads = [];
+  //     for (const payload of payloads) {
+  //       // eslint-disable-next-line no-await-in-loop
+  //       const { signature } = await this.#client.request({
+  //         chainId,
+  //         topic: this.#topics[chainId],
+  //         request: {
+  //           method: WalletConnectRPCMethods.signTransaction,
+  //           params: {
+  //             transaction: payload,
+  //           },
+  //         },
+  //       });
 
-        b64SignedPayloads.push(signature);
-      }
-      const rawPayloads = b64SignedPayloads.map(base64ToUint8Ascii);
-      for (let i = 0; i < rawPayloads.length; i++) {
-        const rawPayload = rawPayloads[i];
-        const index = indices[i];
-        res[index] = { signedTransaction: rawPayload };
-      }
-    }
-    return res;
-  }
+  //       b64SignedPayloads.push(signature);
+  //     }
+  //     const rawPayloads = b64SignedPayloads.map(base58ToBinary);
+  //     for (let i = 0; i < rawPayloads.length; i++) {
+  //       const rawPayload = rawPayloads[i];
+  //       const index = indices[i];
+  //       res[index] = { signedTransaction: rawPayload };
+  //     }
+  //   }
+  //   return res;
+  // }
 
   /** @type {import("@wallet-standard/features").StandardConnectMethod} */
   async #connect(input) {
@@ -322,6 +316,7 @@ export class WalletConnectWallet {
         const modal =
           this.#modal ??
           new WalletConnectModal({
+            // @ts-ignore
             projectId: this.#options.projectId,
             chains: Object.values(WalletConnectChainID),
           });
@@ -430,13 +425,13 @@ export class WalletConnectWallet {
 
   /**
    * Defaults to first chain of this.chains if chain not provided
-   * @template {{ chain: NonLocalnetChain | null | undefined }} I
+   * @template {{ chain: WcSupportedSolChain | null | undefined }} I
    * @param {I[]} inputs
-   * @returns {Record<NonLocalnetChain, number[]>}
+   * @returns {Record<WcSupportedSolChain, number[]>}
    */
   #inputsIndicesByChain(inputs) {
     const { defaultChain } = this;
-    /** @type {Record<NonLocalnetChain, number[]>} */
+    /** @type {Record<WcSupportedSolChain, number[]>} */
     const res = {
       "solana:devnet": [],
       "solana:mainnet": [],
@@ -461,38 +456,38 @@ function base64ToUint8Ascii(asciiStr) {
   return Uint8Array.from(atob(asciiStr), (c) => c.charCodeAt(0));
 }
 
-/**
- *
- * @param {Uint8Array} asciiUint8Array
- * @returns {string}
- */
-function uint8ToBase64Ascii(asciiUint8Array) {
-  return btoa(String.fromCharCode(...asciiUint8Array));
-}
+// /**
+//  *
+//  * @param {Uint8Array} asciiUint8Array
+//  * @returns {string}
+//  */
+// function uint8ToBase64Ascii(asciiUint8Array) {
+//   return btoa(String.fromCharCode(...asciiUint8Array));
+// }
 
-/**
- * @template {MaybeChainProp} I
- * @param {I[]} inputs
- * @returns {inputs is Array<I & { chain: NonLocalnetChain | null | undefined }>}
- */
-function areAllChainsSupported(inputs) {
-  for (const { chain } of inputs) {
-    if (
-      chain !== null &&
-      chain !== undefined &&
-      chain !== SOLANA_DEVNET_CHAIN &&
-      chain !== SOLANA_MAINNET_CHAIN
-    ) {
-      return false;
-    }
-  }
-  return true;
-}
+// /**
+//  * @template {MaybeChainProp} I
+//  * @param {readonly I[]} inputs
+//  * @returns {inputs is Array<I & { chain: WcSupportedSolChain | null | undefined }>}
+//  */
+// function areAllChainsSupported(inputs) {
+//   for (const { chain } of inputs) {
+//     if (
+//       chain !== null &&
+//       chain !== undefined &&
+//       chain !== SOLANA_DEVNET_CHAIN &&
+//       chain !== SOLANA_MAINNET_CHAIN
+//     ) {
+//       return false;
+//     }
+//   }
+//   return true;
+// }
 
 /**
  *
  * @param {import("@solana/wallet-standard-features").SolanaSignMessageInput} msg
- * @returns {{  }}
+ * @returns {{ pubkey: string; message: string }}
  */
 function signMessagesToWalletConnectFormat(msg) {
   /** @type {ReturnType<typeof signMessagesToWalletConnectFormat>} */
