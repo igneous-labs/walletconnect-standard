@@ -39,6 +39,8 @@ footer {
 }
 
 #stake-button,
-#disconnect-button {
+#disconnect-button,
+#sign-stake-button,
+#sign-msg-button {
   font-size: large;
 }

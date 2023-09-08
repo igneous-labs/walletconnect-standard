@@ -1,65 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <script type="module">
-      import {
-        defineCustomElement,
-        WALLET_CONNECTED_EVENT_TYPE,
-        WALLET_DISCONNECTED_EVENT_TYPE,
-      } from "wallet-standard-list";
-      import { registerWalletConnect } from "walletconnect-wallet-standard";
-
-      // Get WalletConnect project ID from https://cloud.walletconnect.com
-      const projectId = "4374d1c29d9988dcea189594474af595";
-
-      // Register WalletConnect Wallet
-      registerWalletConnect(projectId, "Mainnet", {
-        name: "My Dapp",
-        description: "My Dapp description",
-        url: "https://my-dapp.com",
-        icons: ["https://my-dapp.com/logo.png"],
-      });
-
-      // Load Wallet standard list
-      defineCustomElement();
-
-      window.addEventListener(
-        WALLET_CONNECTED_EVENT_TYPE,
-        ({ detail: wallet }) => {
-          console.log(wallet);
-          document.getElementById("connected-wallet").innerText = wallet.name;
-          document.getElementById("first-account").innerText =
-            wallet.accounts[0].address;
-          document.getElementById("stake-button").removeAttribute("disabled");
-          document
-            .getElementById("disconnect-button")
-            .removeAttribute("disabled");
-        },
-      );
-
-      window.addEventListener(WALLET_DISCONNECTED_EVENT_TYPE, () => {
-        document.getElementById("connected-wallet").innerText = "None";
-        document.getElementById("first-account").innerText = "None";
-        document.getElementById("stake-button").setAttribute("disabled", "1");
-        document
-          .getElementById("disconnect-button")
-          .setAttribute("disabled", "1");
-      });
-
-      document.getElementById("disconnect-button").onclick = () => {
-        document.querySelector("wallet-standard-list").disconnect();
-      };
-
-      document.getElementById("stake-button").onclick = async () => {
-        const wallet = document.querySelector(
-          "wallet-standard-list",
-        ).connectedWallet;
-        const url = `https://stakedex-api.fly.dev/v1/swap?inputMint=So11111111111111111111111111111111111111112&outputMint=LAinEtNLgpmCP9Rvsf5Hn8W6EhNiKLZQti1xfWMLy6X&inAmount=1000000000&user=${wallet.publicKey}`;
-        const resp = await fetch(url);
-        const { tx } = await resp.json();
-        await wallet.features["solana:signTransaction"].signTransaction(tx);
-      };
-    </script>
+    <script type="module" src="/index.js"></script>
     <link href="index.css" rel="stylesheet" />
     <meta
       name="viewport"
@@ -69,16 +11,19 @@
   </head>
   <body>
     <h1>Example walletconnect-wallet-standard app</h1>
-    <h2>Connect:</h2>
+    <h2>Detected Standard Wallets:</h2>
     <wallet-standard-list
-      required-features="solana:signAndSendTransaction, solana:signTransaction"
+      required-features="solana:signMessage"
     ></wallet-standard-list>
-    <h3>Connected Wallet: <span id="connected-wallet">None</span></h3>
-    <h3>First Account: <span id="first-account">None</span></h3>
+    <h4>Connected Wallet: <span id="connected-wallet">None</span></h4>
+    <h4>First Account: <span id="first-account">None</span></h4>
     <footer>
       <button type="button" id="disconnect-button" disabled>Disconnect</button>
-      <button type="button" id="stake-button" disabled>
-        Stake 1 SOL to Laine
+      <!-- <button type="button" id="sign-stake-button" disabled>
+                Sign TX to stake 1 SOL to Laine
+                </button> -->
+      <button type="button" id="sign-msg-button" disabled>
+        Sign message "test message"
       </button>
     </footer>
   </body>

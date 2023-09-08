@@ -32,6 +32,14 @@ module.exports = {
       },
       rules: {
         "import/prefer-default-export": "off",
+        "max-classes-per-file": "off",
+        "no-continue": "off",
+        "no-use-before-define": [
+          "error",
+          {
+            functions: false,
+          },
+        ],
         "no-restricted-syntax": [
           "error",
           {
