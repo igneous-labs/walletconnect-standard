@@ -2,7 +2,7 @@ import {
   SOLANA_DEVNET_CHAIN,
   SOLANA_MAINNET_CHAIN,
 } from "@solana/wallet-standard-chains";
-import QRCodeModal from "@walletconnect/qrcode-modal";
+import { WalletConnectModal } from "@walletconnect/modal";
 import WalletConnectClient from "@walletconnect/sign-client";
 import { getSdkError, parseAccountId } from "@walletconnect/utils";
 import { binary_to_base58 as binaryToBase58 } from "base58-js";
@@ -179,16 +179,19 @@ export class WalletConnectWallet {
   /** @type {WalletConnectClient | undefined} */
   #client;
 
+  /** @type {WalletConnectModal | undefined} */
+  #modal;
+
   /** @type {import('@walletconnect/types').SignClientTypes.Options} */
   #options;
 
   /** @type {NonLocalnetChain[]} */
   #chains;
 
-  /** @type {Record<string, string | null>} */
+  /** @type {Record<NonLocalnetChain, string | null>} */
   #topics;
 
-  /** @type {Record<string, WalletConnectAccount[]>} */
+  /** @type {Record<NonLocalnetChain, WalletConnectAccount[]>} */
   #accounts;
 
   /** @type {{ [E in import("@wallet-standard/features").StandardEventsNames]: Set<import("@wallet-standard/features").StandardEventsListeners[E]> }} */
@@ -201,12 +204,12 @@ export class WalletConnectWallet {
     this.#chains = chains ?? ["solana:mainnet"];
     this.#options = options;
     this.#topics = {
-      "mainnet-beta": null,
-      devnet: null,
+      "solana:mainnet": null,
+      "solana:devnet": null,
     };
     this.#accounts = {
-      "mainnet-beta": [],
-      devnet: [],
+      "solana:mainnet": [],
+      "solana:devnet": [],
     };
     this.#listeners = {
       change: new Set(),
@@ -300,37 +303,45 @@ export class WalletConnectWallet {
         "silent connect argument is not supported by WalletConnect because it handles it by itself"
       );
     }
-
     const client =
-      this.#client ?? (await WalletConnectClient.init({ storageOptions: {} }));
+      this.#client ?? (await WalletConnectClient.init(this.#options));
     this.#client = client;
 
     let hasChanged = false;
     for (const chain of this.#chains) {
-      const chainId = WalletConnectChainID[chain];
-      if (this.#topics[chainId] !== null) {
+      if (this.#topics[chain] !== null) {
         continue;
       }
+      const chainId = WalletConnectChainID[chain];
       const connectParams = getConnectParams(chainId);
 
       const sessions = client.find(connectParams).filter((s) => s.acknowledged);
       let session = sessions[sessions.length - 1];
+
       if (!session) {
-        /* eslint-disable no-await-in-loop */
-        const { uri, approval } = await client.connect(connectParams);
-
-        if (uri) {
-          QRCodeModal.open(uri, () => {
-            // eslint-disable-next-line no-new
-            new QRCodeModalError();
+        const modal =
+          this.#modal ??
+          new WalletConnectModal({
+            projectId: this.#options.projectId,
+            chains: Object.values(WalletConnectChainID),
           });
+        this.#modal = modal;
+
+        /* eslint-disable no-await-in-loop */
+        try {
+          const { uri, approval } = await client.connect(connectParams);
+
+          if (uri) {
+            modal.openModal({ uri });
+            session = await approval();
+            modal.closeModal();
+          }
+        } catch (e) {
+          console.error(e);
         }
-
-        // eslint-disable-next-line no-await-in-loop
-        session = await approval();
-
-        QRCodeModal.close();
       }
+      /* eslint-enable no-await-in-loop */
+
       this.#accounts[chainId] =
         session.namespaces.solana.accounts.map(parseAccountId);
       this.#topics[chainId] = session.topic;
@@ -354,12 +365,12 @@ export class WalletConnectWallet {
     const topics = Object.values(this.#topics);
     const noChange = topics.every((opt) => opt === null);
     this.#topics = {
-      "mainnet-beta": null,
-      devnet: null,
+      "solana:mainnet": null,
+      "solana:devnet": null,
     };
     this.#accounts = {
-      "mainnet-beta": [],
-      devnet: [],
+      "solana:mainnet": [],
+      "solana:devnet": [],
     };
 
     if (!noChange) {
@@ -368,6 +379,7 @@ export class WalletConnectWallet {
         if (topic === null) {
           continue;
         }
+        // eslint-disable-next-line no-await-in-loop
         await this.#client.disconnect({
           topic,
           reason: getSdkError("USER_DISCONNECTED"),
