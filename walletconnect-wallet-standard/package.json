@@ -23,12 +23,12 @@
     "@solana/wallet-standard-chains": "^1.1.0",
     "@walletconnect/qrcode-modal": "^1.8.0",
     "@walletconnect/sign-client": "^2.10.0",
-    "@walletconnect/types": "^2.10.0",
     "@walletconnect/utils": "^2.10.0",
     "base58-js": "^2.0.0"
   },
   "devDependencies": {
     "@solana/wallet-standard-features": "^1.1.0",
+    "@walletconnect/types": "^2.10.0",
     "@wallet-standard/base": "^1.0.1",
     "@wallet-standard/features": "^1.0.3",
     "typescript": "^5"

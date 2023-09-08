@@ -1,7 +1,6 @@
 import {
   SOLANA_DEVNET_CHAIN,
   SOLANA_MAINNET_CHAIN,
-  SOLANA_TESTNET_CHAIN,
 } from "@solana/wallet-standard-chains";
 import QRCodeModal from "@walletconnect/qrcode-modal";
 import WalletConnectClient from "@walletconnect/sign-client";
@@ -11,7 +10,7 @@ import { binary_to_base58 as binaryToBase58 } from "base58-js";
 // need to redefine type because @implements doesnt allow import for some reason
 /** @typedef {import("@solana/wallet-standard-features").WalletWithSolanaFeatures} WalletWithSolanaFeatures */
 
-/** @typedef {Exclude<import("@solana/wallet-standard-chains").SolanaChain, "solana:localnet">} NonLocalnetChain */
+/** @typedef {Exclude<import("@solana/wallet-standard-chains").SolanaChain, "solana:localnet" | "solana:testnet">} NonLocalnetChain */
 
 // typedef here just to use [optionalProp] syntax
 /**
@@ -29,14 +28,12 @@ import { binary_to_base58 as binaryToBase58 } from "base58-js";
  * @property {import("@wallet-standard/base").IdentifierString | null | undefined} [chain]
  */
 
-/** @typedef {'mainnet-beta' | 'devnet'} Cluster */
-
 /**
- * @type {Record<Cluster, string>}
+ * @type {Record<NonLocalnetChain, string>}
  */
 const WalletConnectChainID = {
-  "mainnet-beta": "solana:4sGjMW1sUnHzSxGspuhpqLDx6wiyjNtZ",
-  devnet: "solana:8E9rvCKLFQia2Y35HXjjpWzj8weVo44K",
+  "solana:mainnet": "solana:4sGjMW1sUnHzSxGspuhpqLDx6wiyjNtZ",
+  "solana:devnet": "solana:8E9rvCKLFQia2Y35HXjjpWzj8weVo44K",
 };
 
 /**
@@ -129,9 +126,9 @@ export class WalletConnectWallet {
 
   /** @returns {WalletWithSolanaFeatures["accounts"]} */
   get accounts() {
-    const all = Object.values(this.#accounts).reduce((arr, clusterSubArr) => [
+    const all = Object.values(this.#accounts).reduce((arr, chainIdSubArr) => [
       ...arr,
-      ...clusterSubArr,
+      ...chainIdSubArr,
     ]);
     return all.map(this.#walletConnectAccountToStandardAccount.bind(this));
   }
@@ -139,11 +136,6 @@ export class WalletConnectWallet {
   /** @returns {WalletWithSolanaFeatures["features"] & import("@wallet-standard/features").StandardConnectFeature & import("@wallet-standard/features").StandardDisconnectFeature & import("@wallet-standard/features").StandardEventsFeature} */
   get features() {
     return {
-      "solana:signAndSendTransaction": {
-        version: "1.0.0",
-        supportedTransactionVersions: this.supportedTransactionVersions,
-        signAndSendTransaction: this.#signAndSendTransaction.bind(this),
-      },
       // TODO: signMessage currently only supports ascii messages
       "solana:signMessage": {
         version: "1.0.0",
@@ -170,7 +162,7 @@ export class WalletConnectWallet {
   }
 
   // TODO: implement querying the WalletConnect for its supported tx versions
-  /** @returns {import("@solana/wallet-standard-features").SolanaSignAndSendTransactionFeature["solana:signAndSendTransaction"]["supportedTransactionVersions"]} */
+  /** @returns {import("@solana/wallet-standard-features").SolanaSignTransactionFeature["solana:signTransaction"]["supportedTransactionVersions"]} */
   get supportedTransactionVersions() {
     return ["legacy", 0];
   }
@@ -194,7 +186,7 @@ export class WalletConnectWallet {
   #chains;
 
   /** @type {Record<string, string | null>} */
-  #authTokens;
+  #topics;
 
   /** @type {Record<string, WalletConnectAccount[]>} */
   #accounts;
@@ -208,59 +200,17 @@ export class WalletConnectWallet {
   constructor({ chains, ...options }) {
     this.#chains = chains ?? ["solana:mainnet"];
     this.#options = options;
-    this.#authTokens = {
+    this.#topics = {
       "mainnet-beta": null,
       devnet: null,
-      testnet: null,
     };
     this.#accounts = {
       "mainnet-beta": [],
       devnet: [],
-      testnet: [],
     };
     this.#listeners = {
       change: new Set(),
     };
-  }
-
-  /** @type {import("@solana/wallet-standard-features").SolanaSignAndSendTransactionMethod} */
-  async #signAndSendTransaction(...inputs) {
-    if (!this.#client) {
-      throw new ClientNotInitializedError();
-    }
-    if (!areAllChainsSupported(inputs)) {
-      throw new ChainNotSupportedError();
-    }
-    alert("not inplemented");
-    return [];
-    // const inputIndices = this.#inputsIndicesByChain(inputs);
-    // const res = [];
-    // for (const [chainUncasted, indices] of Object.entries(inputIndices)) {
-    //   if (indices.length === 0) {
-    //     continue;
-    //   }
-    //   /** @type {NonLocalnetChain} */ // @ts-ignore
-    //   const chain = chainUncasted;
-    //   const cluster = chainToCluster(chain);
-    //   const rawTxs = indices.map((i) => inputs[i].transaction);
-    //   const payloads = rawTxs.map(uint8ToBase64Ascii);
-
-    //   /* eslint-disable no-await-in-loop */
-    //   const b64Signatures = await this.#transact(cluster, async (wallet) => {
-    //     const { signatures } = await wallet.signAndSendTransactions({
-    //       payloads,
-    //     });
-    //     return signatures;
-    //   });
-    //   /* eslint-enable no-await-in-loop */
-    //   const rawSignatures = b64Signatures.map(base64ToUint8Ascii);
-    //   for (let i = 0; i < rawSignatures.length; i++) {
-    //     const rawSignature = rawSignatures[i];
-    //     const index = indices[i];
-    //     res[index] = { signature: rawSignature };
-    //   }
-    // }
-    // return res;
   }
 
   /** @type {import("@solana/wallet-standard-features").SolanaSignMessageMethod} */
@@ -271,15 +221,15 @@ export class WalletConnectWallet {
     if (inputs.length === 0) {
       return [];
     }
-    // TODO: check if cluster matters
-    const cluster = chainToCluster(this.defaultChain);
+    // TODO: check if chainId matters
+    const chainId = WalletConnectChainID[this.defaultChain];
     const signatures = [];
     for (const input of inputs) {
       const formatted = signMessagesToWalletConnectFormat(input);
       // eslint-disable-next-line no-await-in-loop
       const { signature } = await this.#client.request({
-        chainId: WalletConnectChainID[cluster],
-        topic: this.#authTokens[cluster],
+        chainId,
+        topic: this.#topics[chainId],
         request: {
           method: WalletConnectRPCMethods.signMessage,
           params: formatted,
@@ -314,15 +264,15 @@ export class WalletConnectWallet {
       }
       /** @type {NonLocalnetChain} */ // @ts-ignore
       const chain = chainUncasted;
-      const cluster = chainToCluster(chain);
+      const chainId = WalletConnectChainID[chain];
       const rawTxs = indices.map((i) => inputs[i].transaction);
       const payloads = rawTxs.map(uint8ToBase64Ascii);
       const b64SignedPayloads = [];
       for (const payload of payloads) {
         // eslint-disable-next-line no-await-in-loop
         const { signature } = await this.#client.request({
-          chainId: WalletConnectChainID[cluster],
-          topic: this.#authTokens[cluster],
+          chainId,
+          topic: this.#topics[chainId],
           request: {
             method: WalletConnectRPCMethods.signTransaction,
             params: {
@@ -345,25 +295,23 @@ export class WalletConnectWallet {
 
   /** @type {import("@wallet-standard/features").StandardConnectMethod} */
   async #connect(input) {
-    // TODO: use silent param by saving authToken to localStorage
-    const silent = input?.silent ?? false;
-    if (silent) {
-      throw new Error("silent connect not yet implemented");
+    if (input?.silent !== undefined) {
+      console.log(
+        "silent connect argument is not supported by WalletConnect because it handles it by itself"
+      );
     }
 
     const client =
-      this.#client ?? (await WalletConnectClient.init(this.#options));
+      this.#client ?? (await WalletConnectClient.init({ storageOptions: {} }));
     this.#client = client;
 
     let hasChanged = false;
     for (const chain of this.#chains) {
-      const cluster = chainToCluster(chain);
-      if (this.#authTokens[cluster] !== null) {
+      const chainId = WalletConnectChainID[chain];
+      if (this.#topics[chainId] !== null) {
         continue;
       }
-      const connectParams = getConnectParams(
-        WalletConnectChainID[chainToCluster(chain)]
-      );
+      const connectParams = getConnectParams(chainId);
 
       const sessions = client.find(connectParams).filter((s) => s.acknowledged);
       let session = sessions[sessions.length - 1];
@@ -383,9 +331,9 @@ export class WalletConnectWallet {
 
         QRCodeModal.close();
       }
-      this.#accounts[cluster] =
+      this.#accounts[chainId] =
         session.namespaces.solana.accounts.map(parseAccountId);
-      this.#authTokens[cluster] = session.topic;
+      this.#topics[chainId] = session.topic;
       hasChanged = true;
     }
     const res = {
@@ -403,27 +351,25 @@ export class WalletConnectWallet {
       throw new ClientNotInitializedError();
     }
 
-    const authTokens = Object.values(this.#authTokens);
-    const noChange = authTokens.every((opt) => opt === null);
-    this.#authTokens = {
+    const topics = Object.values(this.#topics);
+    const noChange = topics.every((opt) => opt === null);
+    this.#topics = {
       "mainnet-beta": null,
       devnet: null,
-      testnet: null,
     };
     this.#accounts = {
       "mainnet-beta": [],
       devnet: [],
-      testnet: [],
     };
 
     if (!noChange) {
       this.#emit("change", { accounts: this.accounts });
-      for (const authToken of authTokens) {
-        if (authToken === null) {
+      for (const topic of topics) {
+        if (topic === null) {
           continue;
         }
         await this.#client.disconnect({
-          topic: authToken,
+          topic,
           reason: getSdkError("USER_DISCONNECTED"),
         });
       }
@@ -482,7 +428,6 @@ export class WalletConnectWallet {
     const res = {
       "solana:devnet": [],
       "solana:mainnet": [],
-      "solana:testnet": [],
     };
     for (let i = 0; i < inputs.length; i++) {
       const { chain } = inputs[i];
@@ -514,22 +459,6 @@ function uint8ToBase64Ascii(asciiUint8Array) {
 }
 
 /**
- *
- * @param {NonLocalnetChain} chain
- * @returns {Cluster}
- */
-function chainToCluster(chain) {
-  switch (chain) {
-    case "solana:devnet":
-      return "devnet";
-    case "solana:mainnet":
-      return "mainnet-beta";
-    default:
-      throw new Error(`unknown solana chain ${chain}`);
-  }
-}
-
-/**
  * @template {MaybeChainProp} I
  * @param {I[]} inputs
  * @returns {inputs is Array<I & { chain: NonLocalnetChain | null | undefined }>}
@@ -540,8 +469,7 @@ function areAllChainsSupported(inputs) {
       chain !== null &&
       chain !== undefined &&
       chain !== SOLANA_DEVNET_CHAIN &&
-      chain !== SOLANA_MAINNET_CHAIN &&
-      chain !== SOLANA_TESTNET_CHAIN
+      chain !== SOLANA_MAINNET_CHAIN
     ) {
       return false;
     }
@@ -562,6 +490,16 @@ function signMessagesToWalletConnectFormat(msg) {
   };
 }
 
+let boundAppReadyListener = null;
+
+/**
+ * @param {SolanaWalletConnectWalletStandardCtorArgs} args
+ * @param {import("@wallet-standard/base").WindowAppReadyEvent} event
+ */
+function appReadyListener(args, { detail: { register } }) {
+  register(new WalletConnectWallet(args));
+}
+
 /**
  * Registers WalletConnect wallet adapter as a standard wallet
  * @param {SolanaWalletConnectWalletStandardCtorArgs} args
@@ -569,10 +507,21 @@ function signMessagesToWalletConnectFormat(msg) {
 export function registerWalletConnectWalletStandard(args) {
   /** @type {import("@wallet-standard/base").WalletEventsWindow} */
   const walletEventsWindow = window;
+
+  // If there's an existing listener, remove it first
+  if (boundAppReadyListener) {
+    walletEventsWindow.removeEventListener(
+      "wallet-standard:app-ready",
+      boundAppReadyListener
+    );
+  }
+
+  // Bind the listener with the provided arguments
+  boundAppReadyListener = appReadyListener.bind(null, args);
+
+  // Add the event listener
   walletEventsWindow.addEventListener(
     "wallet-standard:app-ready",
-    ({ detail: { register } }) => {
-      register(new WalletConnectWallet(args));
-    }
+    boundAppReadyListener
   );
 }
