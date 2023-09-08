@@ -3,7 +3,7 @@
   "description": "Register WalletConnect sign client as a wallet-standard wallet",
   "repository": "github:igneous-labs/walletconnect-wallet-standard",
   "homepage": "https://github.com/igneous-labs/walletconnect-wallet-standard",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "main": "src/index.js",
   "exports": {
     ".": {
