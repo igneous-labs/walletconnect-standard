@@ -423,29 +423,29 @@ export class WalletConnectWallet {
     }
   }
 
-  /**
-   * Defaults to first chain of this.chains if chain not provided
-   * @template {{ chain: WcSupportedSolChain | null | undefined }} I
-   * @param {I[]} inputs
-   * @returns {Record<WcSupportedSolChain, number[]>}
-   */
-  #inputsIndicesByChain(inputs) {
-    const { defaultChain } = this;
-    /** @type {Record<WcSupportedSolChain, number[]>} */
-    const res = {
-      "solana:devnet": [],
-      "solana:mainnet": [],
-    };
-    for (let i = 0; i < inputs.length; i++) {
-      const { chain } = inputs[i];
-      if (chain) {
-        res[chain].push(i);
-      } else {
-        res[defaultChain].push(i);
-      }
-    }
-    return res;
-  }
+  // /**
+  //  * Defaults to first chain of this.chains if chain not provided
+  //  * @template {{ chain: WcSupportedSolChain | null | undefined }} I
+  //  * @param {I[]} inputs
+  //  * @returns {Record<WcSupportedSolChain, number[]>}
+  //  */
+  // #inputsIndicesByChain(inputs) {
+  //   const { defaultChain } = this;
+  //   /** @type {Record<WcSupportedSolChain, number[]>} */
+  //   const res = {
+  //     "solana:devnet": [],
+  //     "solana:mainnet": [],
+  //   };
+  //   for (let i = 0; i < inputs.length; i++) {
+  //     const { chain } = inputs[i];
+  //     if (chain) {
+  //       res[chain].push(i);
+  //     } else {
+  //       res[defaultChain].push(i);
+  //     }
+  //   }
+  //   return res;
+  // }
 }
 
 /**
