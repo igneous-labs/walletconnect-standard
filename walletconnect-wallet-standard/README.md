@@ -33,4 +33,6 @@ const { get } = getWallets();
 const allWallets = get(); // the WalletConnect adapter should be a part of `allWallets`
 ```
 
-See [wallet-standard-list README](https://github.com/igneous-labs/wallet-standard-list/blob/master/wallet-standard-list/README.md#usage)
+## NOT SUPPORTED
+
+`signTransaction` is currently doesn't work with WalletConnect sign client. This means that the WalletConnect adapter will not be able to sign transactions. This is a temporary limitation that will be resolved in the future.
